@@ -102,6 +102,11 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
                 ClientMainGame.Get.DisplaySimpleQuestion(dataArr);
                 break;
 
+            case EventLibrary.HostEventType.NumericalQuestion:
+                dataArr = data.Split('|');
+                ClientMainGame.Get.DisplayNumericalQuestion(dataArr);
+                break;
+
             case EventLibrary.HostEventType.MultipleChoiceQuestion:
                 dataArr = data.Split('|');
                 ClientMainGame.Get.DisplayMultipleChoiceQuestion(dataArr);
@@ -110,6 +115,11 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
             case EventLibrary.HostEventType.MultiSelectQuestion:
                 dataArr = data.Split('|');
                 ClientMainGame.Get.DisplayMultiSelectQuestion(dataArr);
+                break;
+
+            case EventLibrary.HostEventType.DangerZoneQuestion:
+                dataArr = data.Split('|');
+                ClientMainGame.Get.DisplayDZQuestion(dataArr);
                 break;
 
             case EventLibrary.HostEventType.SingleAndMultiResult:

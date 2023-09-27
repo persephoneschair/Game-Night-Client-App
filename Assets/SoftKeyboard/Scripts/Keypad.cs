@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class Keypad : MonoBehaviour
 {
+    public SoftKeyboard attachedKeyboard;
+
     public SoftKeyboard.FrontKeyboardUpper upperInput;
     public SoftKeyboard.FrontKeyboardLower lowerInput;
     public SoftKeyboard.BackKeyboard backInput;
@@ -25,7 +27,7 @@ public class Keypad : MonoBehaviour
 
     public void OnModeChange()
     {
-        switch(SoftKeyboard.Get.currentView)
+        switch(attachedKeyboard.currentView)
         {
             case SoftKeyboard.CurrentView.FrontUpper:
                 switch(upperInput)
@@ -48,7 +50,7 @@ public class Keypad : MonoBehaviour
                         }
                         else
                         {
-                            image.sprite = SoftKeyboard.Get.frontSpecialSprites[(int)upperInput];
+                            image.sprite = attachedKeyboard.frontSpecialSprites[(int)upperInput];
                             image.enabled = true;
                             label.text = "";
                         }
@@ -79,7 +81,7 @@ public class Keypad : MonoBehaviour
                             }
                             else
                             {
-                                image.sprite = SoftKeyboard.Get.frontSpecialSprites[(int)lowerInput];
+                                image.sprite = attachedKeyboard.frontSpecialSprites[(int)lowerInput];
                                 image.enabled = true;
                                 label.text = "";
                             }
@@ -108,12 +110,12 @@ public class Keypad : MonoBehaviour
 
                     case SoftKeyboard.BackKeyboard.Backspace:
                     case SoftKeyboard.BackKeyboard.Enter:
-                        image.sprite = SoftKeyboard.Get.backSpecialSprites[(int)backInput];
+                        image.sprite = attachedKeyboard.backSpecialSprites[(int)backInput];
                         label.text = "";
                         break;
 
                     default:
-                        label.text = SoftKeyboard.Get.backKeyboardCharConverter[(int)backInput].ToString();
+                        label.text = attachedKeyboard.backKeyboardCharConverter[(int)backInput].ToString();
                         image.enabled = false;
                         break;
 
@@ -124,18 +126,18 @@ public class Keypad : MonoBehaviour
 
     public void OnPressButton()
     {
-        switch(SoftKeyboard.Get.currentView)
+        switch(attachedKeyboard.currentView)
         {
             case SoftKeyboard.CurrentView.FrontUpper:
-                SoftKeyboard.Get.OnKeyStroke(upperInput);
+                attachedKeyboard.OnKeyStroke(upperInput);
                 break;
 
             case SoftKeyboard.CurrentView.FrontLower:
-                SoftKeyboard.Get.OnKeyStroke(lowerInput);
+                attachedKeyboard.OnKeyStroke(lowerInput);
                 break;
 
             case SoftKeyboard.CurrentView.Back:
-                SoftKeyboard.Get.OnKeyStroke(backInput);
+                attachedKeyboard.OnKeyStroke(backInput);
                 break;
         }
     }

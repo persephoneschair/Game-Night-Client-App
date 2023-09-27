@@ -12,14 +12,18 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
     public TextMeshProUGUI versionMesh;
     public TMP_InputField nameInput;
     public TMP_InputField roomCodeInput;
+    public GameObject nameHeader;
+    public GameObject roomCodeHeader;
+    public GameObject mobileInput;
     public Button joinButton;
     private bool attemptingConnection;
+    public Button clearCredentials;
 
     [Header("Loading Wheel")]
     public GameObject[] wheelSpokes;
 
     [Header("OTP Fields")]
-    private readonly string otpMessage = "It looks like this is the first time you've used this app.\n\nPlease type\n<size=300%><color=yellow>[ABCD]</color></size>\ninto the public chat to connect your Twitch account.\n\nShould you wish to play another game in the future, use the same platform/browser to skip this step.";
+    private readonly string otpMessage = "It looks like this is the first time you've used this app or we don't have any credentials stored for you.\n\nPlease type\n<size=300%><color=yellow>[ABCD]</color></size>\ninto the public chat to connect your Twitch account.\n\nShould you wish to play another game in the future, use the same platform/browser to skip this step.";
     public GameObject otpAlert;
     public TextMeshProUGUI otpMesh;
 
@@ -37,21 +41,41 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
 
         if ((joinButton.gameObject.activeInHierarchy && joinButton.interactable) && (Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Return)))
             OnPressJoinRoomButton();
+
+        clearCredentials.interactable = (string.IsNullOrEmpty(PlayerPrefs.GetString("persist"))) ? false : true;
+        clearCredentials.GetComponentInChildren<TextMeshProUGUI>().text = clearCredentials.interactable ? $"CLEAR STORED USER\n<i>({Encryption.DecryptData(PlayerPrefs.GetString("persist"))})" : "NO USER STORED";
     }
 
     private void Start()
     {
         versionMesh.text = versionMesh.text.Replace("[##]", Application.version);
+        if (Application.isMobilePlatform)
+        {
+            nameInput.interactable = false;
+            roomCodeInput.interactable = false;
+            mobileInput.SetActive(true);
+        }            
     }
 
     public void OnPressJoinRoomButton()
     {
+        clearCredentials.gameObject.SetActive(false);
+        mobileInput.SetActive(false);
         ClientManager.Get.AttemptToConnectToRoom(nameInput.text.ToUpperInvariant(), roomCodeInput.text.ToUpperInvariant());
         roomCodeInput.text = "";
         nameInput.text = "";
         joinButton.gameObject.SetActive(false);
         attemptingConnection = true;
+        nameInput.gameObject.SetActive(false);
+        roomCodeInput.gameObject.SetActive(false);
+        nameHeader.SetActive(false);
+        roomCodeHeader.SetActive(false);
         StartCoroutine(DoLoadingWheel());
+    }
+
+    public void OnPressClearCredentials()
+    {
+        PlayerPrefs.SetString("persist", "");
     }
 
     IEnumerator DoLoadingWheel()
@@ -80,7 +104,15 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
     {
         attemptingConnection = false;
         joinButton.gameObject.SetActive(true);
-        nameInput.ActivateInputField();
+        nameInput.gameObject.SetActive(true);
+        roomCodeInput.gameObject.SetActive(true);
+        nameHeader.SetActive(true);
+        roomCodeHeader.SetActive(true);
+        clearCredentials.gameObject.SetActive(true);
+        if (Application.isMobilePlatform)
+            mobileInput.SetActive(true);
+        else
+            nameInput.ActivateInputField();
     }
 
     public void OnValidateAccount(string otp)
@@ -90,21 +122,21 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
         nameInput.gameObject.SetActive(false);
         roomCodeInput.gameObject.SetActive(false);
 
-        if (File.Exists(Application.persistentDataPath + @"\persist.txt"))
+        if (!string.IsNullOrEmpty(PlayerPrefs.GetString("persist")))
         {
             try
             {
-                string attempt = Encryption.DecryptData(File.ReadAllText(Application.persistentDataPath + @"\persist.txt"));
-                if(!string.IsNullOrEmpty(attempt))
+                string attempt = Encryption.DecryptData(PlayerPrefs.GetString("persist"));
+                if (!string.IsNullOrEmpty(attempt))
                 {
                     ValidateFromStoredName(attempt, otp);
                     return;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogException(ex);
-            }            
+            }
         }
 
         otpMesh.text = otpMessage.Replace("[ABCD]", otp);
@@ -124,7 +156,7 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
         //Default [1] is player points
         //Default [2] is twitch name
 
-        File.WriteAllText(Application.persistentDataPath + @"\persist.txt", Encryption.EncryptData(otpArr[2]));
+        PlayerPrefs.SetString("persist", Encryption.EncryptData(otpArr[2]));
 
         otpAlert.SetActive(false);
         ClientMainGame.Get.Initialise(otpArr);

@@ -8,6 +8,8 @@ public class MultipleChoiceButton : MonoBehaviour
 {
     public Button button;
     public TextMeshProUGUI mesh;
+    public bool isDZ;
+    public bool isDZMulti;
 
     public string containedData;
 
@@ -15,6 +17,13 @@ public class MultipleChoiceButton : MonoBehaviour
     {
         if (containedData == "SUBMIT!")
             ClientMainGame.Get.OnPressMultiSelectSubmit();
+        else if(isDZMulti)
+        {
+            ClientMainGame.Get.dzMultiply = true;
+            ClientMainGame.Get.OnPressDZButton(containedData);
+        }            
+        else if (isDZ)
+            ClientMainGame.Get.OnPressDZButton(containedData);
         else
             ClientMainGame.Get.OnPressMultipleChoiceButton(containedData);
     }

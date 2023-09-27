@@ -1,10 +1,11 @@
 using NaughtyAttributes;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class SoftKeyboard : SingletonMonoBehaviour<SoftKeyboard>
+public class SoftKeyboard : MonoBehaviour
 {
     public enum CurrentView
     {
@@ -49,14 +50,41 @@ public class SoftKeyboard : SingletonMonoBehaviour<SoftKeyboard>
         ' ',' ',' '
     };
 
+    public bool isLandingPage;
+    public bool isNumerical;
     public Keypad[] keypads;
     public CurrentView currentView = CurrentView.FrontUpper;
     public TMP_InputField attachedInputField;
+    public TextMeshProUGUI promptMesh;
+
+    public TMP_InputField []variableInputs;
+    private int currentInput = 0;
 
     public void Start()
     {
-        for(int i = 0; i < keypads.Length; i++)
+        if (isNumerical)
+            currentView = CurrentView.Back;
+
+        for (int i = 0; i < keypads.Length; i++)
             keypads[i].OnSetKeypad((FrontKeyboardUpper)i, (FrontKeyboardLower)i, (BackKeyboard)i);
+
+        if (isNumerical)
+        {
+            keypads[10].OnSetKeypad(FrontKeyboardUpper.Backspace, FrontKeyboardLower.Backspace, BackKeyboard.Backspace);
+            keypads[10].image.enabled = true;
+            keypads.LastOrDefault().OnSetKeypad(FrontKeyboardUpper.Enter, FrontKeyboardLower.Enter, BackKeyboard.Enter);
+            keypads.LastOrDefault().image.enabled = true;
+        }
+
+        if (isLandingPage)
+        {
+            attachedInputField = variableInputs[currentInput];
+            keypads[28].upperInput = FrontKeyboardUpper.Toggle;
+            keypads[28].image.enabled = false;
+            keypads[28].label.text = "SWITCH";
+            promptMesh.text = "ENTER NAME";
+            keypads[30].button.interactable = false;
+        }            
     }
 
     public void ChangeMode(CurrentView newView)
@@ -68,7 +96,13 @@ public class SoftKeyboard : SingletonMonoBehaviour<SoftKeyboard>
 
     public void OnKeyStroke(FrontKeyboardUpper stroke)
     {
-        if(stroke.ToString().Length == 1)
+        if (isLandingPage)
+        {
+            OnLandingPageKeyStroke(stroke);
+            return;
+        }
+
+        if (stroke.ToString().Length == 1)
             attachedInputField.text += stroke.ToString();
         else
         {
@@ -99,7 +133,7 @@ public class SoftKeyboard : SingletonMonoBehaviour<SoftKeyboard>
     }
 
     public void OnKeyStroke(FrontKeyboardLower stroke)
-    {
+    {            
         if (stroke.ToString().Length == 1)
             attachedInputField.text += stroke.ToString();
         else
@@ -156,7 +190,45 @@ public class SoftKeyboard : SingletonMonoBehaviour<SoftKeyboard>
                     break;
 
                 case BackKeyboard.Enter:
-                    ClientMainGame.Get.SubmitSimpleQuestion();
+                    if(isNumerical)
+                        ClientMainGame.Get.SubmitNumericalQuestion();
+                    else
+                        ClientMainGame.Get.SubmitSimpleQuestion();
+                    break;
+            }
+        }
+    }
+
+    public void OnLandingPageKeyStroke(FrontKeyboardUpper stroke)
+    {
+        if (stroke.ToString().Length == 1)
+        {
+            if ((currentInput == 1 && attachedInputField.text.Length > 3) || (currentInput == 0 && attachedInputField.text.Length > 14))
+                return;
+            attachedInputField.text += stroke.ToString();
+            keypads[30].button.interactable = (variableInputs[0].text.Length > 0 && variableInputs[1].text.Length == 4) ? true : false;
+        }            
+
+        else
+        {
+            switch (stroke)
+            {
+                case FrontKeyboardUpper.Toggle:
+                    currentInput = (currentInput + 1) % variableInputs.Length;
+                    attachedInputField = variableInputs[currentInput];
+                    promptMesh.text = currentInput == 0 ? "ENTER NAME" : "ENTER ROOM CODE";
+                    break;
+
+                case FrontKeyboardUpper.Backspace:
+                    if (attachedInputField.text.Length > 0)
+                        attachedInputField.text = attachedInputField.text.Substring(0, attachedInputField.text.Length - 1);
+                    break;
+
+                case FrontKeyboardUpper.Enter:
+                    ClientLandingPageManager.Get.OnPressJoinRoomButton();
+                    currentInput = 0;
+                    attachedInputField = variableInputs[currentInput];
+                    promptMesh.text = currentInput == 0 ? "ENTER NAME" : "ENTER ROOM CODE";
                     break;
             }
         }
