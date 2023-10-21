@@ -181,7 +181,7 @@ MonoBehaviour:
     m_HighlightedColor: {r: 0.02745098, g: 0.31764707, b: 0.6901961, a: 1}
     m_PressedColor: {r: 0.011764706, g: 0.21960784, b: 0.49019608, a: 1}
     m_SelectedColor: {r: 0.02745098, g: 0.31764707, b: 0.6901961, a: 1}
-    m_DisabledColor: {r: 0.7254902, g: 0.8862745, b: 0.7647059, a: 0.5019608}
+    m_DisabledColor: {r: 0.7254902, g: 0.8862745, b: 0.7647059, a: 0.11764706}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -226,6 +226,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   button: {fileID: 8953089639125860537}
   mesh: {fileID: 8953089639689623521}
+  isDZ: 0
+  isDZMulti: 0
   containedData: 
 --- !u!1 &8953089639689623535
 GameObject:

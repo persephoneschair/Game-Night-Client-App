@@ -64,24 +64,25 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
     public GameObject multipleChoiceQuestionGroup;
     public TextMeshProUGUI multipleChoiceQuestionMesh;
 
-    public List<Transform> multipleChoiceRows = new List<Transform>();
+    //public List<Transform> multipleChoiceRows = new List<Transform>();
     public List<MultipleChoiceButton> multipleChoiceButtons = new List<MultipleChoiceButton>();
 
     public Transform answerButtonsTransformTarget;
     public GameObject mcButtonToInstance;
-    public GameObject mcRowToInstance;
+    //public GameObject mcRowToInstance;
 
     [Header("Multi Select Question Group")]
     public GameObject multiSelectQuestionGroup;
     public TextMeshProUGUI multiSelectQuestionMesh;
     private MultipleChoiceButton multiSelectSubmitButton = null;
 
-    public List<Transform> multiSelectRows = new List<Transform>();
+    //public List<Transform> multiSelectRows = new List<Transform>();
     public List<MultiSelectButton> multiSelectButtons = new List<MultiSelectButton>();
 
+    public Transform multiSelectSubmitTransformTarget;
     public Transform multiSelectButtonsTransformTarget;
     public GameObject msButtonToInstance;
-    public GameObject msRowToInstance;
+    //public GameObject msRowToInstance;
 
     [Header("DangerZone Question Group")]
     public GameObject dangerZoneQuestionGroup;
@@ -265,15 +266,26 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
             Destroy(b.gameObject);
         multipleChoiceButtons.Clear();
 
-        foreach (Transform t in multipleChoiceRows)
+        /*foreach (Transform t in multipleChoiceRows)
             Destroy(t.gameObject);
         multipleChoiceRows.Clear();
 
         //Determine how many rows/cells we need
         int totalAnswers = dataArr.Length - 2;
-        int rowRequirement = totalAnswers == 4 ? 2 : (int)Math.Ceiling(totalAnswers / 4f);
+        int rowRequirement = totalAnswers == 4 ? 2 : (int)Math.Ceiling(totalAnswers / 4f);*/
 
-        for (int i = 0; i < rowRequirement; i++)
+        for(int i = 2; i < dataArr.Length; i++)
+        {
+            var x = Instantiate(mcButtonToInstance, answerButtonsTransformTarget);
+            MultipleChoiceButton b = x.GetComponent<MultipleChoiceButton>();
+            b.containedData = dataArr[i];
+            b.mesh.text = b.containedData;
+            multipleChoiceButtons.Add(b);
+        }
+
+
+        //Former method that used rows (pre flexible grid)
+        /*for (int i = 0; i < rowRequirement; i++)
         {
             var x = Instantiate(mcRowToInstance, answerButtonsTransformTarget);
             multipleChoiceRows.Add(x.transform);
@@ -303,7 +315,7 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
                 b.mesh.text = b.containedData;
                 multipleChoiceButtons.Add(b);
             }
-        }
+        }*/
     }
 
     public void OnPressMultipleChoiceButton(string data)
@@ -332,7 +344,7 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
             Destroy(bz.gameObject);
         multiSelectButtons.Clear();
 
-        foreach (Transform t in multiSelectRows)
+        /*foreach (Transform t in multiSelectRows)
             Destroy(t.gameObject);
         multiSelectRows.Clear();
 
@@ -344,9 +356,15 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         {
             var r = Instantiate(msRowToInstance, multiSelectButtonsTransformTarget);
             multiSelectRows.Add(r.transform);
+        }*/
+
+        for (int i = 2; i < dataArr.Length; i++)
+        {
+            var x = Instantiate(msButtonToInstance, multiSelectButtonsTransformTarget);
+            ApplyNewButton(x, dataArr[i]);
         }
 
-        switch(totalAnswers)
+        /*switch (totalAnswers)
         {
             case int ta when ta < 6 || ta > 1:
                 for (int i = 2; i < dataArr.Length; i++)
@@ -375,9 +393,15 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         }
 
         var y = Instantiate(msRowToInstance, multiSelectButtonsTransformTarget);
-        multiSelectRows.Add(y.transform);
-        
-        var z = Instantiate(mcButtonToInstance, multiSelectRows.LastOrDefault());
+        multiSelectRows.Add(y.transform);*/
+
+        if (multiSelectSubmitButton != null)
+        {
+            Destroy(multiSelectSubmitButton.gameObject);
+            multiSelectSubmitButton = null;
+        }
+
+        var z = Instantiate(mcButtonToInstance, multiSelectSubmitTransformTarget);
         MultipleChoiceButton b = z.GetComponent<MultipleChoiceButton>();
         b.containedData ="SUBMIT!";
         b.mesh.text = b.containedData;
@@ -485,7 +509,11 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         if(ClientLandingPageManager.Get != null && ClientLandingPageManager.Get.gameObject.activeInHierarchy)
             ClientLandingPageManager.Get.gameObject.SetActive(false);
 
-        multiSelectSubmitButton = null;
+        if (multiSelectSubmitButton != null)
+        {
+            Destroy(multiSelectSubmitButton.gameObject);
+            multiSelectSubmitButton = null;
+        }
         simpleQuestionInput.text = "";
         feedbackBoxObj.SetActive(false);
         simpleQuestionGroup.SetActive(false);
