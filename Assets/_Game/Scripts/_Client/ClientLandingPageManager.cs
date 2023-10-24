@@ -23,7 +23,17 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
     public GameObject[] wheelSpokes;
 
     [Header("OTP Fields")]
-    private readonly string otpMessage = "It looks like this is the first time you've used this app or we don't have any credentials stored for you.\n\nPlease type\n<size=300%><color=yellow>[ABCD]</color></size>\ninto the public chat to connect your Twitch account.\n\nShould you wish to play another game in the future, use the same platform/browser to skip this step.";
+    private readonly string otpMessage =
+        "It looks like this is the first time you've used this app or we don't have any credentials stored for you.\n\n" +
+        "" +
+        "Please type\n" +
+        "<size=300%><color=yellow>[ABCD]</color></size>\n" +
+        "into the public chat to connect your Twitch account.\n\n" +
+        "" +
+        "<color=yellow><uppercase>If you are playing on a mobile device, it is recommended that you use a second device to perform this action.</color></uppercase>\n\n" +
+        "" +
+        "Should you wish to play another game in the future, use the same platform/browser to skip this step.";
+
     public GameObject otpAlert;
     public TextMeshProUGUI otpMesh;
 
@@ -46,7 +56,7 @@ public class ClientLandingPageManager : SingletonMonoBehaviour<ClientLandingPage
         clearCredentials.GetComponentInChildren<TextMeshProUGUI>().text = clearCredentials.interactable ? $"CLEAR STORED USER\n<i>({Encryption.DecryptData(PlayerPrefs.GetString("persist"))})" : "NO USER STORED";
     }
 
-    private void Start()
+    public void Start()
     {
         versionMesh.text = versionMesh.text.Replace("[##]", Application.version);
         if (Application.isMobilePlatform)

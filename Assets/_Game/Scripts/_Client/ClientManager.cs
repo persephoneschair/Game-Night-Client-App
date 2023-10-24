@@ -5,13 +5,11 @@ using Control;
 using TMPro;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using Unity.VisualScripting;
 
 public class ClientManager : SingletonMonoBehaviour<ClientManager>
 {
     public Client client;
+    public string storedDisplayName;
     public string storedTwitchName;
     public string storedRoomCode;
 
@@ -28,6 +26,7 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
 
     public void AttemptToConnectToRoom(string name, string roomCode)
     {
+        storedDisplayName = name;
         client.Connect(name, roomCode);
     }
 
@@ -46,7 +45,10 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
     {
         Invoke("DisableAttempt", 3f);
         attemptingReconnection = true;
-        AttemptToConnectToRoom(ClientMainGame.Get.playerNameMesh.text + "|" + storedTwitchName, storedRoomCode);
+        if(!string.IsNullOrEmpty(storedTwitchName))
+            AttemptToConnectToRoom(ClientMainGame.Get.playerNameMesh.text + "|" + storedTwitchName, storedRoomCode);
+        else if(!string.IsNullOrEmpty(storedDisplayName))
+            AttemptToConnectToRoom(storedDisplayName, storedRoomCode);
     }
 
     public void DisableAttempt()
@@ -59,7 +61,7 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
         if (ClientMainGame.Get != null)
             debugMesh.text = string.IsNullOrEmpty(ClientMainGame.Get.simpleQuestionInput.text) ? "NO DATA IN INPUT FIELD" : ClientMainGame.Get.simpleQuestionInput.text;
 
-        if (!attemptingReconnection && !client.Connected && !string.IsNullOrEmpty(storedRoomCode) && !string.IsNullOrEmpty(storedTwitchName))
+        if (!attemptingReconnection && !client.Connected && !string.IsNullOrEmpty(storedRoomCode)/* && !string.IsNullOrEmpty(storedTwitchName)*/)
             AttemptRefresh();
 
         connectionStatusMesh.text = !client.Connected ? "<color=red>OFFLINE" : "<color=green>ONLINE WITH HOST";
@@ -115,6 +117,10 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
             case EventLibrary.HostEventType.MultiSelectQuestion:
                 dataArr = data.Split('|');
                 ClientMainGame.Get.DisplayMultiSelectQuestion(dataArr);
+                break;
+
+            case EventLibrary.HostEventType.KillSingleMultiSelectButton:
+                ClientMainGame.Get.KillSingleMultiSelectButton(data);
                 break;
 
             case EventLibrary.HostEventType.DangerZoneQuestion:
