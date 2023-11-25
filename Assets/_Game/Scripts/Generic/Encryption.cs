@@ -25,7 +25,7 @@ public static class Encryption
         }
         catch (Exception ex)
         {
-            DebugLog.Print("Failed to decrypt string", DebugLog.StyleOption.Bold, DebugLog.ColorOption.Red);
+            DebugLog.Print($"Failed to decrypt string: {ex.Message}", DebugLog.StyleOption.Bold, DebugLog.ColorOption.Red);
             return "";
         }
     }

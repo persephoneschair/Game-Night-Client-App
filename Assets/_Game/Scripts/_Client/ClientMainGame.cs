@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -105,6 +106,31 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
             multiSelectSubmitButton.button.interactable = multiSelectButtons.Where(x => x.isSelected).Count() == 0 ? false : true;
     }
 
+    #region Paste Detection
+
+    private string recordedInput;
+    private int speedCap = 0;
+
+    public void OnInputFieldUpdate(string s)
+    {
+        recordedInput = s;
+        speedCap++;
+    }
+
+    IEnumerator ResetSpeedCap()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(0.02f);
+            if (speedCap > 3)
+                ClientManager.Get.SendPayloadToHost($"''{recordedInput}''", EventLibrary.ClientEventType.PasteAlert);
+            speedCap = 0;
+            recordedInput = "";
+        }            
+    }
+
+    #endregion
+
     private void Start()
     {
         this.gameObject.SetActive(false);
@@ -123,6 +149,7 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         keyDetailsObj.SetActive(true);
         feedbackBoxBorder.color = feedbackBoxBorderColors[(int)FeedbackBoxColorStyle.Default];
         feedbackBoxBackground.color = feedbackBoxBackgroundColors[(int)FeedbackBoxColorStyle.Default];
+        StartCoroutine(ResetSpeedCap());
 
 #if UNITY_EDITOR || UNITY_STANDALONE
         optionsButton.SetActive(true);
@@ -445,4 +472,5 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         multiSelectQuestionGroup.SetActive(false);
         dangerZoneQuestionGroup.SetActive(false);
     }
+
 }
