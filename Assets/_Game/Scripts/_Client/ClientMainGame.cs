@@ -37,6 +37,11 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
     public Image feedbackBoxBackground;
     public Image feedbackBoxBorder;
 
+    [Header("Double Information")]
+    public GameObject doubleInformationBoxObj;
+    public TextMeshProUGUI primaryInformationMesh;
+    public TextMeshProUGUI secondaryInformationMesh;
+
     [Header("Simple Question Group")]
     public GameObject simpleQuestionGroup;
     public TextMeshProUGUI simpleQuestionMesh;
@@ -71,6 +76,7 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
     public GameObject mcButtonToInstance;
 
     [Header("Multi Select Question Group")]
+    private int multiSelectLimiter = 0;
     public GameObject multiSelectQuestionGroup;
     public TextMeshProUGUI multiSelectQuestionMesh;
     public MultipleChoiceButton multiSelectSubmitButton;
@@ -104,6 +110,9 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
 
         if (loadedQuestion == QuestionType.MultiSelect && multiSelectSubmitButton != null)
             multiSelectSubmitButton.button.interactable = multiSelectButtons.Where(x => x.isSelected).Count() == 0 ? false : true;
+
+        if (loadedQuestion == QuestionType.MultiSelect && multiSelectSubmitButton != null && multiSelectLimiter != 0)
+            multiSelectSubmitButton.button.interactable = multiSelectButtons.Where(x => x.isSelected).Count() != multiSelectLimiter ? false : true;
     }
 
     #region Paste Detection
@@ -181,6 +190,15 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         feedbackBoxMesh.text = $"{data}";
         feedbackBoxBorder.color = feedbackBoxBorderColors[(int)FeedbackBoxColorStyle.Default];
         feedbackBoxBackground.color = feedbackBoxBackgroundColors[(int)FeedbackBoxColorStyle.Default];
+    }
+
+    public void DisplayDoubleInformation(string[] dataArr)
+    {
+        loadedQuestion = QuestionType.None;
+        KillAllGroups();
+        doubleInformationBoxObj.SetActive(true);
+        primaryInformationMesh.text = $"{dataArr[0]}";
+        secondaryInformationMesh.text = $"{dataArr[1]}";
     }
 
     public void DisplaySimpleQuestion(string[] dataArr)
@@ -342,6 +360,41 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         }
     }
 
+    public void DisplayMultiSelectLimitedQuestion(string[] dataArr)
+    {
+        //[0] = question
+        //[1] = (int)time in seconds
+        //[2] = limiter
+        //[3]-[n] = options
+
+        KillAllGroups();
+        loadedQuestion = QuestionType.MultiSelect;
+
+        if (int.TryParse(dataArr[1], out int time))
+            StartCoroutine(TriggerCountdown(time));
+
+        multiSelectQuestionGroup.SetActive(true);
+        multiSelectQuestionMesh.text = dataArr[0];
+
+        multiSelectLimiter = int.Parse(dataArr[2]);
+
+        //If no options are included in the packet
+        //Previously spawned buttons persist
+        //And no new buttons are created
+        if (dataArr.Length > 3)
+        {
+            foreach (MultiSelectButton bz in multiSelectButtons)
+                Destroy(bz.gameObject);
+            multiSelectButtons.Clear();
+
+            for (int i = 3; i < dataArr.Length; i++)
+            {
+                var x = Instantiate(msButtonToInstance, multiSelectButtonsTransformTarget);
+                ApplyNewButton(x, dataArr[i]);
+            }
+        }
+    }
+
     public void KillSingleMultiSelectButton(string data)
     {
         if(multiSelectButtons.Count > 0)
@@ -464,6 +517,7 @@ public class ClientMainGame : SingletonMonoBehaviour<ClientMainGame>
         }*/
         simpleQuestionInput.text = "";
         feedbackBoxObj.SetActive(false);
+        doubleInformationBoxObj.SetActive(false);
         simpleQuestionGroup.SetActive(false);
         simpleQuestionGroupMobile.SetActive(false);
         numericalQuestionGroup.SetActive(false);

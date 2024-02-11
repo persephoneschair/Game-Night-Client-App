@@ -74,7 +74,7 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
     public void OnPayloadReceived(DataMessage dm)
     {
         string data = (string)dm.Data;
-        EventLibrary.HostEventType ev = EventLibrary.GetHostEventType(dm.Key);        
+        EventLibrary.HostEventType ev = EventLibrary.GetHostEventType(dm.Key);
 
         switch (ev)
         {
@@ -93,6 +93,11 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
 
             case EventLibrary.HostEventType.Information:
                 ClientMainGame.Get.DisplayInformation(data);
+                break;
+
+            case EventLibrary.HostEventType.DoubleInformation:
+                dataArr = data.Split('|');
+                ClientMainGame.Get.DisplayDoubleInformation(dataArr);
                 break;
 
             case EventLibrary.HostEventType.UpdateScore:
@@ -117,6 +122,11 @@ public class ClientManager : SingletonMonoBehaviour<ClientManager>
             case EventLibrary.HostEventType.MultiSelectQuestion:
                 dataArr = data.Split('|');
                 ClientMainGame.Get.DisplayMultiSelectQuestion(dataArr);
+                break;
+
+            case EventLibrary.HostEventType.MultiSelectQuestionLimited:
+                dataArr = data.Split('|');
+                ClientMainGame.Get.DisplayMultiSelectLimitedQuestion(dataArr);
                 break;
 
             case EventLibrary.HostEventType.KillSingleMultiSelectButton:
